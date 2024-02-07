@@ -210,17 +210,17 @@ $array = [
     "Gelenie Free-Free"
 ];
 
-$googleSheetService
-    ->setSpreadSheetId('1udSubIQrO0XQyQ7x5ZPM7tivroY9kBBxcJifbsq1PVY')
-    ->setSheet('genie-usage')
-    ->setData($array)
-    ->sendData();
+// $googleSheetService
+//     ->setSpreadSheetId('1udSubIQrO0XQyQ7x5ZPM7tivroY9kBBxcJifbsq1PVY')
+//     ->setSheet('genie-usage')
+//     ->setData($array)
+//     ->sendData();
 
 
 
 // Example usage of batch insert
 $array = [];
-for($i = 33; $i < 36; $i++) {
+for($i = 43; $i < 50; $i++) {
     $array[] = [
         "$i",
         "100$i",
@@ -236,6 +236,10 @@ for($i = 33; $i < 36; $i++) {
     ];
    
 }
+
 $googleSheetService
-->setData($array)
-->sendBatchData();
+    ->setData($array)
+    ->setSpreadSheetId('1udSubIQrO0XQyQ7x5ZPM7tivroY9kBBxcJifbsq1PVY')
+    ->setSheet('genie-usage')
+    ->setData($array)
+    ->sendBatchData();
