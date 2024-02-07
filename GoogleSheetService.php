@@ -10,7 +10,9 @@ class GoogleSheetService
 
     const VALUE_INPUT_OPTION = 'USER_ENTERED';
 
-    public function __construct(Google_Service_Sheets $service, string $spreadsheetId, string $sheetName)
+    public function __construct(Google_Service_Sheets $service,
+         string $spreadsheetId = '',
+         string $sheetName = '')
     {
         $this->service = $service;
         $this->spreadsheetId = $spreadsheetId;
@@ -82,6 +84,7 @@ class GoogleSheetService
             $options = ['valueInputOption' => self::VALUE_INPUT_OPTION];
             $this->service->spreadsheets_values->append($this->spreadsheetId, $range, $valueRange, $options);
             echo 'Data sent successfully';
+            unset($this->data);
             return true;
         } catch (Exception $e) {
             echo 'Error: ' . $e->getMessage();
@@ -132,6 +135,7 @@ class GoogleSheetService
             $options = ['valueInputOption' => self::VALUE_INPUT_OPTION];
             $this->service->spreadsheets_values->update($this->spreadsheetId, $range, $valueRange, $options);
             echo 'Data updated successfully';
+            unset($this->data);
             return true;
         } catch (Google_Service_Exception $e) {
             echo 'Google Service Exception: ' . $e->getMessage();
@@ -188,10 +192,32 @@ class GoogleSheetService
 require_once 'config.php';
 
 
-$googleSheetService = new GoogleSheetService($service, '1udSubIQrO0XQyQ7x5ZPM7tivroY9kBBxcJifbsq1PVY', 'genie-usage');
+$googleSheetService = new GoogleSheetService($service);
 
 
-/*
+// single insert
+$array = [
+    "d600",
+    "10000",
+    "seo features",
+    "keyword cluster",
+    "getgenie?local",
+    "en",
+    "1577",
+    "0",
+    "0",
+    "2023-12-13 8:48:51",
+    "Gelenie Free-Free"
+];
+
+$googleSheetService
+    ->setSpreadSheetId('1udSubIQrO0XQyQ7x5ZPM7tivroY9kBBxcJifbsq1PVY')
+    ->setSheet('genie-usage')
+    ->setData($array)
+    ->sendData();
+
+
+
 // Example usage of batch insert
 $array = [];
 for($i = 33; $i < 36; $i++) {
@@ -213,81 +239,3 @@ for($i = 33; $i < 36; $i++) {
 $googleSheetService
 ->setData($array)
 ->sendBatchData();
-*/
-
-
-
-//Example usage of single insert
-
-/*
-$data = [
-    "5600",
-    "10000",
-    "seo features",
-    "keyword cluster",
-    "getgenie?local",
-    "en",
-    "1577",
-    "0",
-    "0",
-    "2023-12-13 8:48:51",
-    "Gelenie Free-Free"
-];
-
-
-
-$googleSheetService
-    ->setData($data)
-    ->sendData();
-*/
-
-
-
-/**
- * Delete row
- */
-
- // Set the range to delete, for example, delete row 23
-// $googleSheetService->setRange('23:28');
-
-// // Call the deleteRow method
-// $result = $googleSheetService->deleteRow();
-
-// if ($result) {
-//     echo 'Row deleted successfully.';
-// } else {
-//     echo 'Failed to delete row.';
-// }
-
-
-/**
- * Update row
- */
-
- // Define the data to update
-$updateData = [
-    "5600",
-    "10000",
-    "seo features",
-    "keyword cluster",
-    "getgenie?local",
-    "en",
-    "1577",
-    "0",
-    "0",
-    "2023-12-13 8:48:51",
-    "Gelenie Free-Free"
-    // Add more updated values as needed
-];
-
-// Set the range where you want to update the data, for example, update row 5
-$googleSheetService->setRange('!5:5');
-
-// Call the updateData method
-$result = $googleSheetService->updateData($updateData);
-
-if ($result) {
-    echo 'Data updated successfully.';
-} else {
-    echo 'Failed to update data.';
-}
