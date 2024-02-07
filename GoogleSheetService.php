@@ -45,6 +45,26 @@ class GoogleSheetService
         return $this;
     }
 
+    public function sendBatchData(): mixed
+    {
+        $existingData = $this->getData();
+
+        $duplicate = $this->checkBatchDuplicates($this->data, $existingData);
+        if ($duplicate) {
+            echo 'Duplcate found';
+            return false;
+        }
+
+        $valueRange = new Google_Service_Sheets_ValueRange();
+        $valueRange->setValues($this->data);
+        $range = $this->sheetName; // the service will detect the last row of this sheet
+        $options = ['valueInputOption' => self::VALUE_INPUT_OPTION];
+        $this->service->spreadsheets_values->append($this->spreadsheetId, $range, $valueRange, $options);
+        unset($this->data);
+        echo 'Data sent successfully';
+        return true;
+    }
+
     public function sendData(): mixed
     {
         $existingData = $this->getData();
@@ -54,6 +74,7 @@ class GoogleSheetService
             echo 'Duplcate found';
             return false;
         }
+
         $valueRange = new Google_Service_Sheets_ValueRange();
         $valueRange->setValues([$this->data]);
         $range = $this->sheetName; // the service will detect the last row of this sheet
@@ -69,7 +90,7 @@ class GoogleSheetService
         
         print_r($existingData);
         $isDuplicate = false;
-
+        
         foreach ($existingData as $rowData) {
 
             // Assuming the first column contains unique identifiers
@@ -87,6 +108,22 @@ class GoogleSheetService
             echo "Duplicate entry found. Not added to the spreadsheet.";
         }
         return $isDuplicate;
+    }
+
+    public function checkBatchDuplicates(array $newRows, $existingData): bool
+    {
+        // Assuming the first column contains unique identifiers
+        $existingIds = array_column($existingData, 0);
+        $newIds = array_column($newRows, 0);
+
+        // Check for duplicates in the new data
+        foreach ($newIds as $newId) {
+            if (in_array($newId, $existingIds)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function updateData(array $updateRow): void
@@ -126,14 +163,37 @@ require_once __DIR__ . '/config.php';
 $googleSheetService = new GoogleSheetService($service, '1udSubIQrO0XQyQ7x5ZPM7tivroY9kBBxcJifbsq1PVY', 'genie-usage');
 
 
+/*
+// Example usage of batch insert
+$array = [];
+for($i = 15; $i < 30; $i++) {
+    $array[] = [
+        "$i",
+        "100$i",
+        "seo features",
+        "keyword cluster",
+        "getgenie?local",
+        "en",
+        "15$i",
+        "$i",
+        "$i",
+        "2023-12-13 8:48:51",
+        "Gelenie Free-Free"
+    ];
+   
+}
+$googleSheetService
+->setData($array)
+->sendBatchData();
+*/
 
 
 
-
-
+/*
+Example usage of single insert
 
 $array = [
-    "5000",
+    "5600",
     "10000",
     "seo features",
     "keyword cluster",
@@ -150,15 +210,4 @@ $array = [
 $googleSheetService
     ->setData($array)
     ->sendData();
-
-
-
-
-
-
-
-
-
-
-
-
+*/
