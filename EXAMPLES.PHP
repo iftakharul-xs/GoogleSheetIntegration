@@ -102,3 +102,39 @@ if ($result) {
 } else {
     echo 'Failed to update data.';
 }*/
+
+
+
+
+require_once 'config.php';
+
+
+$googleSheetService = new GoogleSheetService($service);
+
+
+
+
+$array = [
+    [
+        "d60dad0",
+        "10000",
+        "seo features",
+        "keyword cluster",
+        "getgenie?local",
+        "en",
+        "1577",
+        "0",
+        "0",
+        "2023-12-13 8:48:51",
+        "Gelenie Free-Free"
+    ],
+];
+
+
+$googleSheetService
+    ->setSpreadSheetId('1udSubIQrO0XQyQ7x5ZPM7tivroY9kBBxcJifbsq1PVY')
+    ->setSheet('genie-usage')
+    ->setData($array)
+    ->clearAndInsert();
+
+
