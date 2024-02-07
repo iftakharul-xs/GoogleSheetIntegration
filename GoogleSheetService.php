@@ -45,7 +45,7 @@ class GoogleSheetService
         return $this;
     }
 
-    public function sendBatchData( ): bool
+    public function sendBatchData(): bool
     {
         try {
             $existingData = $this->getData();
@@ -91,25 +91,19 @@ class GoogleSheetService
 
     public function checkDuplicates(array $newRows, array $existingData): bool
     {
-        
+
         $isDuplicate = false;
-        
+
         foreach ($existingData as $rowData) {
 
             // Assuming the first column contains unique identifiers
-            if ($rowData[0] == $newRows[0]) { 
+            if ($rowData[0] == $newRows[0]) {
                 $isDuplicate = true;
                 break;
             }
-            
+
         }
 
-        // If no duplicates, add the new row
-        // if (!$isDuplicate) {
-        //     echo "New entry added successfully.";
-        // } else {
-        //     echo "Duplicate entry found. Not added to the spreadsheet.";
-        // }
         return $isDuplicate;
     }
 
@@ -129,26 +123,47 @@ class GoogleSheetService
         return false;
     }
 
-    public function updateData(array $updateRow): void
+    public function updateData(array $updateRow): bool
     {
-        $valueRange = new Google_Service_Sheets_ValueRange();
-        $valueRange->setValues([$updateRow]);
-        $range = $this->sheetName . $this->range;
-        $options = ['valueInputOption' => self::VALUE_INPUT_OPTION];
-        $this->service->spreadsheets_values->update($this->spreadsheetId, $range, $valueRange, $options);
+        try {
+            $valueRange = new Google_Service_Sheets_ValueRange();
+            $valueRange->setValues([$updateRow]);
+            $range = $this->sheetName . $this->range;
+            $options = ['valueInputOption' => self::VALUE_INPUT_OPTION];
+            $this->service->spreadsheets_values->update($this->spreadsheetId, $range, $valueRange, $options);
+            echo 'Data updated successfully';
+            return true;
+        } catch (Google_Service_Exception $e) {
+            echo 'Google Service Exception: ' . $e->getMessage();
+            return false;
+        } catch (Exception $e) {
+            echo 'Exception: ' . $e->getMessage();
+            return false;
+        }
     }
 
-    public function deleteRow(): void
+    public function deleteRow(): bool
     {
-        $range = $this->sheetName . '!' . $this->range; // the range to clear, the 23th and 24th lines
-        $clear = new Google_Service_Sheets_ClearValuesRequest();
-        $this->service->spreadsheets_values->clear($this->spreadsheetId, $range, $clear);
+        try {
+            $range = $this->sheetName . '!' . $this->range; // the range to clear, the 23rd and 24th lines
+            $clear = new Google_Service_Sheets_ClearValuesRequest();
+            $this->service->spreadsheets_values->clear($this->spreadsheetId, $range, $clear);
+            echo 'Row deleted successfully';
+            return true;
+        } catch (Google_Service_Exception $e) {
+            echo 'Google Service Exception: ' . $e->getMessage();
+            return false;
+        } catch (Exception $e) {
+            echo 'Exception: ' . $e->getMessage();
+            return false;
+        }
     }
+
     public function getData(): array
     {
         try {
             // assign the range you want to get
-            $range = $this->sheetName . '!A1:K'; 
+            $range = $this->sheetName . '!A1:K';
             $response = $this->service->spreadsheets_values->get($this->spreadsheetId, $range);
 
             return $response->getValues();
@@ -225,3 +240,54 @@ $googleSheetService
     ->setData($data)
     ->sendData();
 */
+
+
+
+/**
+ * Delete row
+ */
+
+ // Set the range to delete, for example, delete row 23
+// $googleSheetService->setRange('23:28');
+
+// // Call the deleteRow method
+// $result = $googleSheetService->deleteRow();
+
+// if ($result) {
+//     echo 'Row deleted successfully.';
+// } else {
+//     echo 'Failed to delete row.';
+// }
+
+
+/**
+ * Update row
+ */
+
+ // Define the data to update
+$updateData = [
+    "5600",
+    "10000",
+    "seo features",
+    "keyword cluster",
+    "getgenie?local",
+    "en",
+    "1577",
+    "0",
+    "0",
+    "2023-12-13 8:48:51",
+    "Gelenie Free-Free"
+    // Add more updated values as needed
+];
+
+// Set the range where you want to update the data, for example, update row 5
+$googleSheetService->setRange('!5:5');
+
+// Call the updateData method
+$result = $googleSheetService->updateData($updateData);
+
+if ($result) {
+    echo 'Data updated successfully.';
+} else {
+    echo 'Failed to update data.';
+}
