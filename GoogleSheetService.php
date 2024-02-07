@@ -80,10 +80,8 @@ class GoogleSheetService
             
         }
 
-
         // If no duplicates, add the new row
         if (!$isDuplicate) {
-            // $this->setData($newRows)->sendData();
             echo "New entry added successfully.";
         } else {
             echo "Duplicate entry found. Not added to the spreadsheet.";
@@ -109,7 +107,7 @@ class GoogleSheetService
 
     public function getData(): array
     {
-        $range = $this->sheetName . '!A1:K14'; // assign the range you want to get
+        $range = $this->sheetName . '!A1:K'; // assign the range you want to get
         $response = $this->service->spreadsheets_values->get($this->spreadsheetId, $range);
 
         return $response->getValues();
@@ -122,24 +120,11 @@ class GoogleSheetService
 
 }
 
-// Usage:
-require_once 'vendor/autoload.php';
 
-$client = new Google_Client();
-$client->setApplicationName('Google Sheets API');
-$client->setScopes([Google_Service_Sheets::SPREADSHEETS]);
-$client->setAccessType('offline');
-$path = __DIR__ . '/credential.json';
-$client->setAuthConfig($path);
+require_once __DIR__ . '/config.php';
 
-$service = new Google_Service_Sheets($client);
-
-// ->setSpreadSheetId('1ijecuM5f4WzTSfuUCizzvcnEWC2hVn7XOpOrp0h91jw')
-// ->setSheet('plugin')
 $googleSheetService = new GoogleSheetService($service, '1udSubIQrO0XQyQ7x5ZPM7tivroY9kBBxcJifbsq1PVY', 'genie-usage');
 
-// $googleSheetService->getData();
-// print_r($googleSheetService->getData());
 
 
 
@@ -148,7 +133,7 @@ $googleSheetService = new GoogleSheetService($service, '1udSubIQrO0XQyQ7x5ZPM7ti
 
 
 $array = [
-    "50",
+    "5000",
     "10000",
     "seo features",
     "keyword cluster",
