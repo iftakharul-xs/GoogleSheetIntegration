@@ -45,50 +45,53 @@ class GoogleSheetService
         return $this;
     }
 
-    public function sendBatchData(): mixed
+    public function sendBatchData( ): bool
     {
-        $existingData = $this->getData();
+        try {
+            $existingData = $this->getData();
 
-        $duplicate = $this->checkBatchDuplicates($this->data, $existingData);
-        if ($duplicate) {
-            echo 'Duplcate found';
+            if ($this->checkBatchDuplicates($this->data, $existingData)) {
+                throw new Exception('Duplicate entries found. Data not sent to the spreadsheet.');
+            }
+
+            $valueRange = new Google_Service_Sheets_ValueRange();
+            $valueRange->setValues($this->data);
+            $range = $this->sheetName; // the service will detect the last row of this sheet
+            $options = ['valueInputOption' => self::VALUE_INPUT_OPTION];
+            $this->service->spreadsheets_values->append($this->spreadsheetId, $range, $valueRange, $options);
+            echo 'Data sent successfully';
+            return true;
+        } catch (Exception $e) {
+            echo 'Error: ' . $e->getMessage();
             return false;
         }
-
-        $valueRange = new Google_Service_Sheets_ValueRange();
-        $valueRange->setValues($this->data);
-        $range = $this->sheetName; // the service will detect the last row of this sheet
-        $options = ['valueInputOption' => self::VALUE_INPUT_OPTION];
-        $this->service->spreadsheets_values->append($this->spreadsheetId, $range, $valueRange, $options);
-        unset($this->data);
-        echo 'Data sent successfully';
-        return true;
     }
 
-    public function sendData(): mixed
+    public function sendData(): bool
     {
-        $existingData = $this->getData();
+        try {
+            $existingData = $this->getData();
 
-        $duplicate = $this->checkDuplicates($this->data, $existingData);
-        if ($duplicate) {
-            echo 'Duplcate found';
+            if ($this->checkDuplicates($this->data, $existingData)) {
+                throw new Exception('Duplicate entry found. Data not sent to the spreadsheet.');
+            }
+
+            $valueRange = new Google_Service_Sheets_ValueRange();
+            $valueRange->setValues([$this->data]);
+            $range = $this->sheetName; // the service will detect the last row of this sheet
+            $options = ['valueInputOption' => self::VALUE_INPUT_OPTION];
+            $this->service->spreadsheets_values->append($this->spreadsheetId, $range, $valueRange, $options);
+            echo 'Data sent successfully';
+            return true;
+        } catch (Exception $e) {
+            echo 'Error: ' . $e->getMessage();
             return false;
         }
-
-        $valueRange = new Google_Service_Sheets_ValueRange();
-        $valueRange->setValues([$this->data]);
-        $range = $this->sheetName; // the service will detect the last row of this sheet
-        $options = ['valueInputOption' => self::VALUE_INPUT_OPTION];
-        $this->service->spreadsheets_values->append($this->spreadsheetId, $range, $valueRange, $options);
-        unset($this->data);
-        echo 'Data sent successfully';
-        return true;
     }
 
-    public function checkDuplicates(array $newRows, $existingData): bool
+    public function checkDuplicates(array $newRows, array $existingData): bool
     {
         
-        print_r($existingData);
         $isDuplicate = false;
         
         foreach ($existingData as $rowData) {
@@ -102,15 +105,15 @@ class GoogleSheetService
         }
 
         // If no duplicates, add the new row
-        if (!$isDuplicate) {
-            echo "New entry added successfully.";
-        } else {
-            echo "Duplicate entry found. Not added to the spreadsheet.";
-        }
+        // if (!$isDuplicate) {
+        //     echo "New entry added successfully.";
+        // } else {
+        //     echo "Duplicate entry found. Not added to the spreadsheet.";
+        // }
         return $isDuplicate;
     }
 
-    public function checkBatchDuplicates(array $newRows, $existingData): bool
+    public function checkBatchDuplicates(array $newRows, array $existingData): bool
     {
         // Assuming the first column contains unique identifiers
         $existingIds = array_column($existingData, 0);
@@ -141,13 +144,21 @@ class GoogleSheetService
         $clear = new Google_Service_Sheets_ClearValuesRequest();
         $this->service->spreadsheets_values->clear($this->spreadsheetId, $range, $clear);
     }
-
     public function getData(): array
     {
-        $range = $this->sheetName . '!A1:K'; // assign the range you want to get
-        $response = $this->service->spreadsheets_values->get($this->spreadsheetId, $range);
+        try {
+            // assign the range you want to get
+            $range = $this->sheetName . '!A1:K'; 
+            $response = $this->service->spreadsheets_values->get($this->spreadsheetId, $range);
 
-        return $response->getValues();
+            return $response->getValues();
+        } catch (Google_Service_Exception $e) {
+            echo 'Google Service Exception: ' . $e->getMessage();
+            return [];
+        } catch (Exception $e) {
+            echo 'Exception: ' . $e->getMessage();
+            return [];
+        }
     }
 
     protected function getRange(): string
@@ -158,7 +169,9 @@ class GoogleSheetService
 }
 
 
-require_once __DIR__ . '/config.php';
+
+require_once 'config.php';
+
 
 $googleSheetService = new GoogleSheetService($service, '1udSubIQrO0XQyQ7x5ZPM7tivroY9kBBxcJifbsq1PVY', 'genie-usage');
 
@@ -166,7 +179,7 @@ $googleSheetService = new GoogleSheetService($service, '1udSubIQrO0XQyQ7x5ZPM7ti
 /*
 // Example usage of batch insert
 $array = [];
-for($i = 15; $i < 30; $i++) {
+for($i = 33; $i < 36; $i++) {
     $array[] = [
         "$i",
         "100$i",
@@ -189,10 +202,10 @@ $googleSheetService
 
 
 
-/*
-Example usage of single insert
+//Example usage of single insert
 
-$array = [
+/*
+$data = [
     "5600",
     "10000",
     "seo features",
@@ -207,7 +220,8 @@ $array = [
 ];
 
 
+
 $googleSheetService
-    ->setData($array)
+    ->setData($data)
     ->sendData();
 */
