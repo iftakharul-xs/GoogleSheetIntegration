@@ -3,7 +3,7 @@
 Can follow basic blog from here 
 https://www.nidup.io/blog/manipulate-google-sheets-in-php-with-api
 
-you need ssl to submit data 
+you need ssl to submit data or you can turn it off from guzzle client verify false
 
 I've request maximum data in a minitues that throw an error
 https://cloud.google.com/docs/quota#requesting_higher_quota

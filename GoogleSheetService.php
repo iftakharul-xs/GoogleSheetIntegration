@@ -5,7 +5,7 @@ class GoogleSheetService
     private string $spreadsheetId;
     private string $sheetName;
     private string $range = '';
-    private array $data;
+    private array $data ;
     private Google_Service_Sheets $service;
 
     const VALUE_INPUT_OPTION = 'USER_ENTERED';
@@ -17,7 +17,8 @@ class GoogleSheetService
         $this->service = $service;
         $this->spreadsheetId = $spreadsheetId;
         $this->sheetName = $sheetName;
-        count([]);
+        $this->data = [];
+
     }
 
     public function setSpreadSheetId(string $spreadsheetId): self
@@ -52,7 +53,23 @@ class GoogleSheetService
     {
         return $this->sheetName . '!' . $this->range;
     }
+    protected function getSheet(): string
+    {
+        return $this->sheetName;
+    }
 
+    public function setHeader(array $header){
+        // $this->data[0] =  $header;
+        if(count($this->data) > 0){
+            array_unshift($this->data, $header);
+        }
+        else{
+            $this->data[0] = $header;
+        }
+        return $this;
+    }
+
+    
 
     public function checkForDuplicates(array $newRows, array $existingData): bool
     {
@@ -78,8 +95,8 @@ class GoogleSheetService
             $range = $this->sheetName . $this->range;
             $options = ['valueInputOption' => self::VALUE_INPUT_OPTION];
             $this->service->spreadsheets_values->update($this->spreadsheetId, $range, $valueRange, $options);
-            echo 'Data updated successfully';
             unset($this->data);
+            echo 'Data updated successfully';
             return true;
         } catch (Google_Service_Exception $e) {
             echo 'Google Service Exception: ' . $e->getMessage();
@@ -114,7 +131,7 @@ class GoogleSheetService
             $range = $this->sheetName . '!A1:K';
             $response = $this->service->spreadsheets_values->get($this->spreadsheetId, $range);
 
-            return $response->getValues();
+            return !empty($response->getValues()) ? $response->getValues() : [];
         } catch (Google_Service_Exception $e) {
             echo 'Google Service Exception: ' . $e->getMessage();
             return [];
@@ -128,10 +145,6 @@ class GoogleSheetService
     {
         try {
             $existingData = $this->getData();
-
-            if (empty($this->data)) {
-                throw new Exception('Data array is empty.');
-            }
 
             $valueRange = new Google_Service_Sheets_ValueRange();
 
@@ -195,12 +208,24 @@ require_once 'config.php';
 
 $googleSheetService = new GoogleSheetService($service);
 
-
-
+$header = [
+    'SL' ,
+    'User ID' ,
+    'Feature Type' ,
+    'Template Name' ,
+    'Domain Name' ,
+    'Language' ,
+    'Word Generate' ,
+    'SERP Analysis' ,
+    'Keyword Lookup' ,
+    'Created At' ,
+    'Product Title'
+];
 
 $array = [
+    // $header,
     [
-        "d60dad0",
+        "2ew3",
         "10000",
         "seo features",
         "keyword cluster",
@@ -216,8 +241,9 @@ $array = [
 
 
 $googleSheetService
-    ->setSpreadSheetId('1udSubIQrO0XQyQ7x5ZPM7tivroY9kBBxcJifbsq1PVY')
-    ->setSheet('genie-usage')
+    ->setSpreadSheetId('1udSubIQrO0XQyQ7x5ZPM7tivroY9kBBxcJifbsq1PVY') // Spreadsheet ID
+    ->setSheet('genie-usage') // Sheet name
+    ->setHeader($header) // set header
     ->setData($array)
     ->clearAndInsert();
 
